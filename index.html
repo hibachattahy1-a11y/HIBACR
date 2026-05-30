@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SGTM — Tableau de bord Chambords</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-box"><span class="logo-text">SGTM</span></div>
+    <div class="logo-sub">
+      <span class="logo-label">Suivi Avancement</span>
+      <span class="logo-proj">Chambords</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+        <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+        <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+        <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+      </svg>
+      Tableau de bord
+    </a>
+  </nav>
+
+  <div class="sidebar-spacer"></div>
+
+  <div class="sidebar-legend">
+    <p class="legend-title">LÉGENDE</p>
+    <div class="legend-row"><span class="dot dot-green"></span>Réalisé</div>
+    <div class="legend-row"><span class="dot dot-red"></span>Non réalisé</div>
+  </div>
+
+  <button class="btn-pdf" onclick="exportPDF()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Exporter PDF
+  </button>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="proj-info">
+        <span class="info-label">PROJET</span>
+        <span class="info-val">Travaux de construction du Grand Stade Hassan II — Province de Benslimane</span>
+      </div>
+      <div class="info-divider"></div>
+      <div class="proj-info">
+        <span class="info-label">LOT</span>
+        <span class="info-val">Lot n°2 : Gros œuvre — Étanchéité — Charpente métallique — Revêtement — Faux Plafonds</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="acc-badge" id="accBadge">
+        <span class="acc-dot"></span>ACC connecté ✓
+      </span>
+      <button class="reset-btn logout-btn" onclick="logoutACC()" id="logoutBtn" style="display:none" title="Se déconnecter de ACC">⏏ Déconnexion</button>
+      <button class="reset-btn" onclick="resetAll()">↺ Réinitialiser</button>
+      <span class="date-chip" id="dateChip">—</span>
+    </div>
+  </div>
+  <h1 class="dash-title">Tableau de bord de suivi des travaux des Chambords</h1>
+
+  <!-- Filtres -->
+  <div class="filtres">
+    <span class="flt-label">▼ FILTRES</span>
+    <div class="flt-grp">
+      <label>Bloc</label>
+      <div class="ms-wrap" id="msBloc">
+        <button type="button" class="ms-trigger" onclick="toggleMs(event,'msBloc')">
+          <span class="ms-display" id="msBlocDisplay">Tout</span>
+          <span class="ms-caret">▾</span>
+        </button>
+        <div class="ms-dropdown" id="msBlocDropdown" style="display:none">
+          <label class="ms-item"><input type="checkbox" value="1"    onchange="onMsChange('msBloc')"> Bloc 1</label>
+          <label class="ms-item"><input type="checkbox" value="2"    onchange="onMsChange('msBloc')"> Bloc 2</label>
+          <label class="ms-item"><input type="checkbox" value="2-11" onchange="onMsChange('msBloc')"> Bloc 2-11</label>
+          <label class="ms-item"><input type="checkbox" value="3"    onchange="onMsChange('msBloc')"> Bloc 3</label>
+          <label class="ms-item"><input type="checkbox" value="4"    onchange="onMsChange('msBloc')"> Bloc 4</label>
+        </div>
+      </div>
+    </div>
+    <div class="flt-grp">
+      <label>Entreprise</label>
+      <select class="flt-sel" id="fEnt" onchange="refresh()">
+        <option value="">Tout</option>
+        <option value="SGTM">SGTM</option>
+        <option value="TGCC">TGCC</option>
+      </select>
+    </div>
+    <div class="flt-grp">
+      <label>Chambord</label>
+      <div class="ms-wrap" id="msChambord">
+        <button type="button" class="ms-trigger" onclick="toggleMs(event,'msChambord')">
+          <span class="ms-display" id="msChambordDisplay">Tout</span>
+          <span class="ms-caret">▾</span>
+        </button>
+        <div class="ms-dropdown" id="msChambordDropdown" style="display:none">
+          <!-- peuplé par populateFilters() -->
+        </div>
+      </div>
+    </div>
+    <div class="flt-grp">
+      <label>Phase</label>
+      <div class="ms-wrap" id="msPhase">
+        <button type="button" class="ms-trigger" onclick="toggleMs(event,'msPhase')">
+          <span class="ms-display" id="msPhaseDisplay">Tout</span>
+          <span class="ms-caret">▾</span>
+        </button>
+        <div class="ms-dropdown" id="msPhaseDropdown" style="display:none">
+          <label class="ms-item"><input type="checkbox" value="1" onchange="onMsChange('msPhase')"> Phase 1</label>
+          <label class="ms-item"><input type="checkbox" value="2" onchange="onMsChange('msPhase')"> Phase 2</label>
+          <label class="ms-item"><input type="checkbox" value="3" onchange="onMsChange('msPhase')"> Phase 3</label>
+        </div>
+      </div>
+    </div>
+    <div class="flt-grp">
+      <label>Levée</label>
+      <div class="ms-wrap" id="msLevee">
+        <button type="button" class="ms-trigger" onclick="toggleMs(event,'msLevee')">
+          <span class="ms-display" id="msLeveeDisplay">Tout</span>
+          <span class="ms-caret">▾</span>
+        </button>
+        <div class="ms-dropdown" id="msLeveeDropdown" style="display:none">
+          <!-- peuplé par populateFilters() -->
+        </div>
+      </div>
+    </div>
+    <div class="flt-grp">
+      <label>Statut</label>
+      <select class="flt-sel" id="fStatut" onchange="refresh()">
+        <option value="">Tout</option>
+        <option value="realise">Réalisé</option>
+        <option value="non_realise">Non réalisé</option>
+      </select>
+    </div>
+    <button class="flt-reset" onclick="resetAll()">↺ Réinitialiser</button>
+    <span class="flt-count" id="fltCount">— levées</span>
+  </div>
+
+  <!-- ══ CARTES STATS ══ -->
+  <div class="stats-row">
+
+    <!-- Avancement Global — donut Chart.js -->
+    <div class="card">
+      <div class="card-h">Avancement Global</div>
+      <div class="card-b">
+        <div class="global-inner">
+          <div class="donut-wrap">
+            <canvas id="donutChart" width="78" height="78"></canvas>
+            <div class="donut-label" id="gPct">—%</div>
+          </div>
+          <div class="global-stats">
+            <div class="stat-mini"><span>Levées réalisées</span><span class="v green" id="gReal">—</span></div>
+            <div class="stat-mini"><span>Total</span><span class="v" id="gTotal">—</span></div>
+            <div class="stat-mini"><span>Restantes</span><span class="v" id="gRest">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avancement par Bloc — select dropdown -->
+    <div class="card">
+      <div class="card-h" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Avancement par Bloc</span>
+        <select id="blocModeSelect" class="flt-sel" onchange="onBlocModeChange(this)"
+          style="font-size:8.5px;padding:2px 22px 2px 7px;min-width:90px">
+          <option value="pct">% Réalisé</option>
+          <option value="qty" selected>Quantités</option>
+        </select>
+      </div>
+      <div class="card-b" style="position:relative;height:120px;padding:4px 6px 2px">
+        <canvas id="blocChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Avancement Entreprise — design simplifié référence -->
+    <div class="card">
+      <div class="card-h">Avancement Entreprise</div>
+      <div class="card-b" style="padding:12px 14px">
+
+        <!-- SGTM -->
+        <div class="ent-simple" onclick="filterByEnt('SGTM')" title="Filtrer SGTM" id="entCardSGTM">
+          <div class="ent-simple-top">
+            <span class="ent-simple-name sgtm-color">SGTM</span>
+            <span class="ent-simple-pct sgtm-color" id="sgtmPct">—%</span>
+          </div>
+          <div class="progress-track"><div class="pf-mustard" id="sgtmBar" style="width:0%"></div></div>
+        </div>
+
+        <!-- TGCC -->
+        <div class="ent-simple" onclick="filterByEnt('TGCC')" title="Filtrer TGCC" id="entCardTGCC" style="margin-top:13px">
+          <div class="ent-simple-top">
+            <span class="ent-simple-name tgcc-color">TGCC</span>
+            <span class="ent-simple-pct tgcc-color" id="tgccPct">—%</span>
+          </div>
+          <div class="progress-track"><div class="pf-gray" id="tgccBar" style="width:0%"></div></div>
+        </div>
+
+        <p class="ent-note" style="margin-top:10px;color:#999;font-style:italic">
+          Pourcentage de levées réalisées par entreprise
+        </p>
+      </div>
+    </div>
+
+    <!-- Levées -->
+    <div class="card">
+      <div class="card-h">Levées</div>
+      <div class="card-b">
+        <div class="lev-stat">
+          <div class="lev-icon lev-orange">⬡</div>
+          <div>
+            <div class="lev-lbl">Nombre total de levées</div>
+            <div class="lev-num mustard" id="levTotal">—</div>
+          </div>
+        </div>
+        <div class="lev-stat">
+          <div class="lev-icon lev-green" style="font-size:18px;font-weight:700">✓</div>
+          <div>
+            <div class="lev-lbl">Levées réalisées</div>
+            <div class="lev-num green" id="levReal">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ SECTION BASSE : Table + Viewer ══ -->
+  <div class="content">
+
+    <!-- Tableau chambords -->
+    <div class="lcol">
+      <div class="tbl-card">
+        <div class="tbl-head">
+          <span class="tbl-title">Avancement par Chambord</span>
+          <input class="tbl-search" id="tblSearch" type="text" placeholder="Filtrer..." oninput="filterTable()">
+        </div>
+        <table id="mainTable">
+          <thead><tr><th>Chambord</th><th>Total</th><th>Réa.</th><th>%</th></tr></thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+        <div class="tbl-footer" id="tblFooter">—</div>
+      </div>
+    </div>
+
+    <!-- Maquette 3D -->
+    <div class="rcol">
+      <div class="viewer-header">
+        <span class="viewer-title">🏗 MAQUETTE 3D — CALEPINAGE</span>
+        <div class="viewer-ctrl">
+          <button class="v-btn v-btn-active" id="colorBtn" onclick="toggleColorMode(this)">⊙ Couleurs statut</button>
+          <span class="vbadge vbadge-loading" id="vBadge">⏳ Connexion...</span>
+        </div>
+      </div>
+
+      <!-- Zone viewer Autodesk -->
+      <div id="viewer">
+        <div id="viewerPlaceholder">
+          <span style="font-size:52px">🏗</span>
+          <p style="font-size:14px;margin:12px 0 6px">Maquette 3D Chambords</p>
+          <p id="placeholderMsg" style="font-size:11px;color:rgba(255,255,255,.4)">⏳ Connexion APS en cours...</p>
+        </div>
+      </div>
+
+      <div class="viewer-toolbar">
+        <div class="tb-grp">
+          <button class="tb-btn" title="Orbite">🔄</button>
+          <button class="tb-btn" title="Pan">✋</button>
+          <button class="tb-btn" title="Zoom">🔍</button>
+          <button class="tb-btn" title="Personne">👤</button>
+          <button class="tb-btn" title="Caméra">🎬</button>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-grp">
+          <button class="tb-btn" title="Mesure">📐</button>
+          <button class="tb-btn" title="Isoler">📦</button>
+          <button class="tb-btn" title="Coupe">✂</button>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-grp">
+          <button class="tb-btn" title="Propriétés">⊞</button>
+          <button class="tb-btn" title="Plein écran" onclick="toggleFullscreen()">⤢</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/viewer-aps.js"></script>
+</body>
+</html>
